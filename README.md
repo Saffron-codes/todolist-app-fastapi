@@ -1,73 +1,98 @@
-# REST API with Fastapi and Postgresql
+# Todo API (FastAPI + PostgreSQL)
 
-## Create User
-```
-/register
-```
-> Pass the following json as body 
+Secure Todo API with JWT auth, built on FastAPI and SQLAlchemy, backed by PostgreSQL. Ships with Docker/Docker Compose and a simple HTML frontend in `frontend/`.
 
-```json
-{
-    "name":"John",
-    "email":"john@gmail.com",
-    "passoword":"123456"
-}
-```
-- The Password should not exceed 6 char
+## Tech
 
-## Create Todo
-```
-/notes/create
-```
-> Pass the following json
-```json
-{
-    "description":"Take Dogs for walk",
-    "user_id":1
-}
-```
-- The user_id is returned while creating the user
+- **FastAPI**, **SQLAlchemy**, **PostgreSQL**
+- **JWT** auth (`python-jose`), **passlib[bcrypt]`
+- **Uvicorn** for ASGI, optional **Docker**/**Compose**
 
+## Project Structure
 
-## Update Todo
 ```
-/notes/update
+app/
+  main.py           # FastAPI app, routes, CORS, serves frontend
+  database.py       # SQLAlchemy engine + Session
+  models.py         # SQLAlchemy models
+  schemas.py        # Pydantic schemas
+  crud.py           # Database operations
+  security.py       # Password hashing + JWT
+frontend/
+  index.html        # Simple UI that talks to the API
+Dockerfile
+docker-compose.yml
+requirements.txt
 ```
-> Pass the following json
-```json
-{
-    "id":2
-    "new_description":"Take Dogs for walk",
-    "user_id":1
-}
-```
-- The user_id is returned while creating the user
-- The id aka note id is returned using get user todos
 
-## Delete Todo
-```
-/notes/delete?id=1&user_id=2
-```
-> Pass the above with the parameters correctly
+## Environment
 
-- The user_id is returned while creating the user
-- The id aka note id is returned using get user todos
+Create a `.env` file in the project root.
 
-## Get User Todos
+For Docker Compose (service name `db`):
 ```
-/notes/&user_id=2&password=123456
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/fastapi_db
+SECRET_KEY=change-me-in-production
 ```
-- returns a list of json 
-```json
-[
-  {
-    "id": 3,
-    "description": "Take Dogs for walk"
-  },
-  {
-    "id": 5,
-    "description": "Buy milk & biscuit"
-  }
-]
+
+For local (Postgres on your machine):
 ```
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/fastapi_db
+SECRET_KEY=change-me-in-production
+```
+
+## Run with Docker Compose (recommended)
+
+```bash
+docker compose up --build
+```
+
+- API: `http://localhost:8000`
+- Docs: `http://localhost:8000/docs` (Swagger) and `http://localhost:8000/redoc`
+- Frontend: `http://localhost:8000/` (served from `frontend/index.html` if present) or `http://localhost:8000/static` for static files.
+
+Hot-reload is enabled in the container. Code changes in this folder reflect inside the `web` service via the mounted volume.
+
+## Run locally without Docker
+
+Prereqs: Python 3.11+, running PostgreSQL.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Ensure .env is created as above and DB exists
+uvicorn app.main:app --reload
+```
+
+Visit `http://localhost:8000/docs`.
+
+## Auth flow
+
+- `POST /signup` accepts JSON with `email` and `password` and creates a user.
+- `POST /login` expects form data per OAuth2 (fields: `username` = your email, `password`). Returns `{ access_token, token_type }`.
+- For protected routes, send `Authorization: Bearer <access_token>` header.
+
+## Endpoints (summary)
+
+- `POST /signup` — create user
+- `POST /login` — login, receive JWT token
+- `GET /users/{user_id}` — fetch user by id
+- `GET /todos` — list todos for current user (JWT)
+- `POST /todos` — create todo (JWT)
+- `GET /todos/{todo_id}` — get a todo (JWT, owner only)
+- `PUT /todos/{todo_id}` — update todo (JWT, owner only)
+- `DELETE /todos/{todo_id}` — delete todo (JWT, owner only)
+
+Open API docs at `/docs` for full request/response schemas.
+
+## CORS
+
+Development allows all origins. For production, restrict `allow_origins` in `app.main` to your domains.
+
+## Frontend
+
+A simple HTML frontend lives in `frontend/`. With Docker/Compose or `uvicorn`, it is served at `/` if `frontend/index.html` exists. You can also open it directly or serve it via:
+Just visit `http://localhost:8000/` once the backend is running.
 

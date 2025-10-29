@@ -4,58 +4,32 @@ A simple, modern web frontend for the Todo API.
 
 ## Features
 
-- 🔐 User authentication (Login/Signup)
+- 🔐 Authentication (Signup/Login)
 - ✅ Add, view, update, and delete todos
-- 🎨 Modern, responsive UI
-- 🔒 JWT token-based authentication
-- 💾 Local storage for session persistence
+- 🔒 JWT bearer token stored in LocalStorage
+- 🎨 Responsive UI
 
-## How to Use
+## How to Run
 
-### Option 1: Open in Browser (Simple)
+The backend can serve this page at `/` automatically when running with Docker or `uvicorn`.
 
-1. Make sure your FastAPI backend is running on `http://localhost:8000`
-2. Open `frontend/index.html` in your web browser
-3. Create an account or login
-4. Start managing your todos!
-
-### Option 2: Using a Simple HTTP Server
-
-If you get CORS errors, use a local server:
-
-```bash
-# Python 3
-python -m http.server 8080 --directory frontend
-
-# Or Node.js (if you have it)
-npx serve frontend
-```
-
-Then open `http://localhost:8080` in your browser.
-
-## Features
-
-- **Authentication**: Sign up and login with email and password
-- **Todo Management**: Add, complete, and delete todos
-- **Secure**: Uses JWT tokens for authentication
-- **Responsive**: Works on desktop and mobile devices
+- Start backend (Docker): `docker compose up`
+- Visit: `http://localhost:8000/`
 
 ## API Endpoints Used
 
-- `POST /signup` - Create new user account
-- `POST /login` - Get authentication token
-- `GET /todos` - Get all todos for logged-in user
-- `POST /todos` - Create a new todo
-- `PUT /todos/{id}` - Update a todo
-- `DELETE /todos/{id}` - Delete a todo
+- `POST /signup` — Create a new user. Body: `{ "email", "password" }`
+- `POST /login` — OAuth2 form body: `username=<email>&password=<password>` → `{ access_token }`
+- `GET /todos` — Get todos for the logged-in user (requires `Authorization: Bearer <token>`)
+- `POST /todos` — Create a todo (JWT)
+- `PUT /todos/{id}` — Update a todo (JWT)
+- `DELETE /todos/{id}` — Delete a todo (JWT)
 
-## Customization
+## Configuration
 
-You can easily customize the styling by modifying the CSS in the `<style>` section of `index.html`.
+If the backend is not on `http://localhost:8000`, edit the API base URL inside `frontend/index.html`.
 
-## Technologies
+## Customize
 
-- Pure HTML, CSS, and JavaScript (no frameworks)
-- Fetch API for HTTP requests
-- LocalStorage for token persistence
+Tweak styles inside the `<style>` tag in `index.html`. The frontend uses plain HTML/CSS/JS with the Fetch API and LocalStorage.
 
